@@ -18,28 +18,26 @@ export default function SchoolCatalog() {
   };
 
   const handleSort = (column) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      setSortColumn(column);
-      setSortDirection("asc");
-    }
+    const direction =
+      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
+    setSortColumn(column);
+    setSortDirection(direction);
   };
 
-  const filteredCourses = courses.filter(
-    (course) =>
-      course.courseNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.courseName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCourses = courses.filter((course) => {
+    const lowerSearch = searchTerm.toLowerCase();
+    return (
+      course.courseNumber.toLowerCase().includes(lowerSearch) ||
+      course.courseName.toLowerCase().includes(lowerSearch)
+    );
+  });
 
   const sortedCourses = [...filteredCourses].sort((a, b) => {
-    if (!sortColumn) return 0;
+    const valA = a[sortColumn];
+    const valB = b[sortColumn];
 
-    const valueA = a[sortColumn].toString().toLowerCase();
-    const valueB = b[sortColumn].toString().toLowerCase();
-
-    if (valueA < valueB) return sortDirection === "asc" ? -1 : 1;
-    if (valueA > valueB) return sortDirection === "asc" ? 1 : -1;
+    if (valA < valB) return sortDirection === "asc" ? -1 : 1;
+    if (valA > valB) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
 
@@ -55,11 +53,26 @@ export default function SchoolCatalog() {
       <table>
         <thead>
           <tr>
-            <th onClick={() => handleSort("trimester")}>Trimester</th>
-            <th onClick={() => handleSort("courseNumber")}>Course Number</th>
-            <th onClick={() => handleSort("courseName")}>Courses Name</th>
-            <th onClick={() => handleSort("semesterCredits")}>Semester Credits</th>
-            <th onClick={() => handleSort("totalClockHours")}>Total Clock Hours</th>
+            <th onClick={() => handleSort("trimester")}>
+              Trimester{" "}
+              {sortColumn === "trimester" && (sortDirection === "asc" ? "▲" : "▼")}
+            </th>
+            <th onClick={() => handleSort("courseNumber")}>
+              Course Number{" "}
+              {sortColumn === "courseNumber" && (sortDirection === "asc" ? "▲" : "▼")}
+            </th>
+            <th onClick={() => handleSort("courseName")}>
+              Course Name{" "}
+              {sortColumn === "courseName" && (sortDirection === "asc" ? "▲" : "▼")}
+            </th>
+            <th onClick={() => handleSort("semesterCredits")}>
+              Semester Credits{" "}
+              {sortColumn === "semesterCredits" && (sortDirection === "asc" ? "▲" : "▼")}
+            </th>
+            <th onClick={() => handleSort("totalClockHours")}>
+              Total Clock Hours{" "}
+              {sortColumn === "totalClockHours" && (sortDirection === "asc" ? "▲" : "▼")}
+            </th>
             <th>Enroll</th>
           </tr>
         </thead>
@@ -78,10 +91,6 @@ export default function SchoolCatalog() {
           ))}
         </tbody>
       </table>
-      <div className="pagination">
-        <button>Previous</button>
-        <button>Next</button>
-      </div>
     </div>
   );
 }
