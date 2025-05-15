@@ -5,7 +5,9 @@ export default function SchoolCatalog() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 5;
+  
   useEffect(() => {
     fetch("/api/courses.json")
       .then((response) => response.json())
@@ -40,6 +42,10 @@ export default function SchoolCatalog() {
     if (valA > valB) return sortDirection === "asc" ? 1 : -1;
     return 0;
   });
+
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentCourses = sortedCourses.slice(indexOfFirstRow, indexOfLastRow);
 
   return (
     <div className="school-catalog">
@@ -77,7 +83,7 @@ export default function SchoolCatalog() {
           </tr>
         </thead>
         <tbody>
-          {sortedCourses.map((course, index) => (
+          {currentCourses.map((course, index) => (
             <tr key={index}>
               <td>{course.trimester}</td>
               <td>{course.courseNumber}</td>
@@ -91,6 +97,21 @@ export default function SchoolCatalog() {
           ))}
         </tbody>
       </table>
+          <div className="pagination">
+        <button
+          onClick={() => setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span>Page {currentPage}</span>
+        <button
+          onClick={() => setCurrentPage(currentPage + 1)}
+          disabled={indexOfLastRow >= sortedCourses.length}
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }
