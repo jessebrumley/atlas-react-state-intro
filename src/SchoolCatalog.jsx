@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
+import { EnrollmentContext } from "./App";
 
 export default function SchoolCatalog() {
   const [courses, setCourses] = useState([]);
@@ -6,8 +7,10 @@ export default function SchoolCatalog() {
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 5;
-  
+  const coursesPerPage = 5;
+
+  const { enrollCourse } = useContext(EnrollmentContext);
+
   useEffect(() => {
     fetch("/api/courses.json")
       .then((response) => response.json())
@@ -17,6 +20,7 @@ export default function SchoolCatalog() {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
+    setCurrentPage(1);
   };
 
   const handleSort = (column) => {
@@ -43,9 +47,13 @@ export default function SchoolCatalog() {
     return 0;
   });
 
-  const indexOfLastRow = currentPage * rowsPerPage;
-  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
-  const currentCourses = sortedCourses.slice(indexOfFirstRow, indexOfLastRow);
+  const startIndex = (currentPage - 1) * coursesPerPage;
+  const paginatedCourses = sortedCourses.slice(
+    startIndex,
+    startIndex + coursesPerPage
+  );
+
+  const totalPages = Math.ceil(sortedCourses.length / coursesPerPage);
 
   return (
     <div className="school-catalog">
@@ -60,30 +68,25 @@ export default function SchoolCatalog() {
         <thead>
           <tr>
             <th onClick={() => handleSort("trimester")}>
-              Trimester{" "}
-              {sortColumn === "trimester" && (sortDirection === "asc" ? "▲" : "▼")}
+              Trimester {sortColumn === "trimester" && (sortDirection === "asc" ? "▲" : "▼")}
             </th>
             <th onClick={() => handleSort("courseNumber")}>
-              Course Number{" "}
-              {sortColumn === "courseNumber" && (sortDirection === "asc" ? "▲" : "▼")}
+              Course Number {sortColumn === "courseNumber" && (sortDirection === "asc" ? "▲" : "▼")}
             </th>
             <th onClick={() => handleSort("courseName")}>
-              Course Name{" "}
-              {sortColumn === "courseName" && (sortDirection === "asc" ? "▲" : "▼")}
+              Course Name {sortColumn === "courseName" && (sortDirection === "asc" ? "▲" : "▼")}
             </th>
             <th onClick={() => handleSort("semesterCredits")}>
-              Semester Credits{" "}
-              {sortColumn === "semesterCredits" && (sortDirection === "asc" ? "▲" : "▼")}
+              Semester Credits {sortColumn === "semesterCredits" && (sortDirection === "asc" ? "▲" : "▼")}
             </th>
             <th onClick={() => handleSort("totalClockHours")}>
-              Total Clock Hours{" "}
-              {sortColumn === "totalClockHours" && (sortDirection === "asc" ? "▲" : "▼")}
+              Total Clock Hours {sortColumn === "totalClockHours" && (sortDirection === "asc" ? "▲" : "▼")}
             </th>
             <th>Enroll</th>
           </tr>
         </thead>
         <tbody>
-          {currentCourses.map((course, index) => (
+          {paginatedCourses.map((course, index) => (
             <tr key={index}>
               <td>{course.trimester}</td>
               <td>{course.courseNumber}</td>
@@ -91,23 +94,26 @@ export default function SchoolCatalog() {
               <td>{course.semesterCredits}</td>
               <td>{course.totalClockHours}</td>
               <td>
-                <button>Enroll</button>
+                <button
+                  onClick={() => { enrollCourse(course); }}>Enroll</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-          <div className="pagination">
+      <div className="pagination">
         <button
-          onClick={() => setCurrentPage(currentPage - 1)}
+          onClick={() => setCurrentPage((prev) => prev - 1)}
           disabled={currentPage === 1}
         >
           Previous
         </button>
-        <span>Page {currentPage}</span>
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
         <button
-          onClick={() => setCurrentPage(currentPage + 1)}
-          disabled={indexOfLastRow >= sortedCourses.length}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+          disabled={currentPage === totalPages}
         >
           Next
         </button>
